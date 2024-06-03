@@ -1,0 +1,54 @@
+// image draft api object 
+[{
+    id:1,
+    rowImageUrl: '',
+    editedImageUrl: '',
+    stickers:[
+        {
+            id:1,
+            ImageUrl: '',
+            position: {
+                x: 0.000,
+                y: 0.000
+            }
+        }
+    ]
+    text: [
+        {
+            id:1,
+            text: 'abc',
+            position: {
+                x: 0.000,
+                y: 0.000
+            }
+        }
+    ],
+    location: [],
+    hashTags: []
+}]
+// Video draft api object 
+[{
+    id:1,
+    rowVideoUrl: '',
+    editedVideoUrl: '',
+    stickers:[
+        {
+            id:1,
+            ImageUrl: '',
+            position: {
+                x: 0.000,
+                y: 0.000
+            }
+        }
+    ]
+    text: [
+        {
+            id:1,
+            text: 'abc',
+            position: {
+                x: 0.000,
+                y: 0.000
+            }
+        }
+    ]
+}]
