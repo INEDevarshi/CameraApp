@@ -189,7 +189,9 @@ const EditingScreen = ({navigation, route}) => {
   const [isPreview, setIsPreview] = useState(false);
   const [position, setPosition] = useState(route.params?.draft?.text || []);
   const TextPosition = useRef(new Animated.ValueXY()).current;
-  const [stickersPosition, setStickersPosition] = useState([]);
+  const [stickersPosition, setStickersPosition] = useState(
+    route.params?.draft?.sticker || [],
+  );
   const [locationPosition, setLocationPosition] = useState(
     route.params?.draft?.location || [],
   );
@@ -252,11 +254,12 @@ const EditingScreen = ({navigation, route}) => {
   }, [selectedVideo]);
   useEffect(() => {
     setfinalVideo(editedVideo);
+    console.log('new edited Video:======', editedVideo);
   }, [editedVideo]);
 
   const getAllPhotos = async () => {
     await CameraRoll.getPhotos({
-      first: 20,
+      first: 100,
       assetType: 'All',
       // after:20,
     })
@@ -552,6 +555,7 @@ const EditingScreen = ({navigation, route}) => {
       friends: selectedFriends,
       location: locationPosition,
       hashtags: selectedHashtags,
+      sticker: stickersPosition,
       video: finalVideo,
       uperImage: upperImagePath,
     };

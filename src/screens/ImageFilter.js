@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {
   FlatList,
   Image,
@@ -25,9 +25,7 @@ const ImageFilter = ({props, route}) => {
   const {selectedImage, selectedImage2, selectedVideo} = route.params;
   const navigation = useNavigation();
 
-  const extractedUri = useRef(
-    'https://www.hyundai.com/content/hyundai/ww/data/news/data/2021/0000016609/image/newsroom-0112-photo-1-2021elantranline-1120x745.jpg',
-  );
+  const extractedUri = useRef(selectedImage);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onExtractImage = ({nativeEvent}) => {
@@ -73,6 +71,7 @@ const ImageFilter = ({props, route}) => {
           image={image}
           style={{resizeMode: 'contain', width: wp(25), height: hp('10%')}}
           onExtractImage={onExtractImage}
+          extractImageEnabled={true}
         />
         <Text style={styles.filterName}>{item?.title}</Text>
       </TouchableOpacity>
@@ -171,7 +170,6 @@ const ImageFilter = ({props, route}) => {
             contentContainerStyle={styles.flatListContainer}
             showsVerticalScrollIndicator={false}
             keyExtractor={item => item.id}
-            // horizontal={true}
             renderItem={renderFilterComponent}
             ListFooterComponent={() => <View style={{marginBottom: hp(60)}} />}
           />
@@ -183,27 +181,16 @@ const ImageFilter = ({props, route}) => {
 export default ImageFilter;
 const styles = StyleSheet.create({
   image: {
-    // width: 520,
     width: wp('90%'),
     height: 400,
     position: 'relative',
     marginVertical: 15,
     alignSelf: 'center',
-    // width: 520,
-    // height: 520,
-    // marginVertical: 10,
-    // alignSelf: 'center',
   },
   filterSelector: {
     width: wp('25%'),
     height: hp('10%'),
-    // width: 120,
-    // height: 80,
-    // margin: 5,
     padding: hp('1%'),
-    // marginBottom:hp('2%'),
-    //  alignItems:'center',
-    //  justifyContent:'center'
   },
   filterTitle: {
     fontSize: 12,
@@ -213,8 +200,6 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontFamily: FONT.BOLD,
     fontSize: FONT_SIZE.F_23,
-    // fontWeight:'bold',
-    // textAlign: 'center',
   },
   filterName: {
     color: '#000',

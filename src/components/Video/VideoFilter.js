@@ -1,55 +1,54 @@
 import {FFmpegKit, ReturnCode} from 'ffmpeg-kit-react-native';
 import RNFS from 'react-native-fs';
 
-export const adjustVideoBrightnessContrast = async (
+export const adjustVideoBrightnessContrast = (
   selectedVideo,
   brightness,
   contrast,
+  saturation,
 ) => {
   console.log('video path====', selectedVideo);
   console.log('brightness', brightness);
   console.log('contrast', contrast);
-
-  if (!selectedVideo) {
-    throw new Error('Invalid selected video.');
-  }
-
-  const originalVideoUri = selectedVideo;
-  const outputFileName = `adjusted_${new Date().getTime()}.mp4`;
-  const outputVideoPath = `${RNFS.CachesDirectoryPath}/${outputFileName}`;
-  console.log('outputVideoPath', outputVideoPath);
-
-  // Calculate adjustment factors
-  const brightnessFactor = (brightness - 0.5) * 2;
-  const contrastFactor = (contrast - 0.5) * 2;
-
-  const inRange = Math.max(0, Math.min(2, brightnessFactor - contrastFactor));
-
-  const ffmpegCommand = `-i ${originalVideoUri} -vf "scale=in_range=${inRange}:1.0,scale=out_range=0:${Math.min(
-    brightnessFactor + contrastFactor,
-    1.0,
-  )}" -b:v 10M -c:a copy ${outputVideoPath}`;
-
-  console.log('FFmpeg command:', ffmpegCommand);
-
-  try {
-    const session = await FFmpegKit.execute(ffmpegCommand);
-    const returnCode = await session.getReturnCode();
-
-    if (ReturnCode.isSuccess(returnCode)) {
-      console.log(
-        'Video brightness and contrast adjustment completed successfully.',
-      );
-      return `file://${outputVideoPath}`; // Resolve with output path
-    } else if (ReturnCode.isCancel(returnCode)) {
-      throw new Error('Video brightness and contrast adjustment canceled.');
-    } else {
-      throw new Error(
-        `Video brightness and contrast adjustment failed with return code: ${returnCode}`,
-      );
+  return new Promise((resolve, reject) => {
+    if (!selectedVideo) {
+      reject('Invalid selected video.');
+      return;
     }
-  } catch (error) {
-    console.error('Error executing FFmpeg command:', error);
-    throw error;
-  }
+
+    const originalVideoUri = selectedVideo;
+    const outputFileName = `adjusted_${new Date().getTime()}.mp4`;
+    const outputVideoPath = `${RNFS.CachesDirectoryPath}/${outputFileName}`;
+    console.log('outputVideoPath', outputVideoPath);
+
+    // Calculate the brightness adjustment factor
+    const brightnessFactor = (brightness - 0.5) * 2;
+
+    // Calculate the contrast adjustment factor
+    const contrastFactor = (contrast - 0.5) * 2;
+
+    const ffmpegCommand = `-i ${originalVideoUri} -vf "eq=brightness=${brightness}:contrast=${contrast}:saturation=${saturation}" -b:v 10M -c:a copy ${outputVideoPath}`;
+
+    // Execute FFmpeg command
+    FFmpegKit.execute(ffmpegCommand)
+      .then(async session => {
+        const returnCode = await session.getReturnCode();
+
+        if (ReturnCode.isSuccess(returnCode)) {
+          resolve(`file://${outputVideoPath}`); // Resolve the Promise with the output video path
+          console.log(
+            'Video brightness and contrast adjustment completed successfully.',
+          );
+        } else if (ReturnCode.isCancel(returnCode)) {
+          reject('Video brightness and contrast adjustment canceled.');
+        } else {
+          reject(
+            `Video brightness and contrast adjustment failed with return code: ${returnCode}`,
+          );
+        }
+      })
+      .catch(error => {
+        reject(`Error executing FFmpeg command: ${error}`);
+      });
+  });
 };

@@ -48,7 +48,7 @@ const CropModal = props => {
   const [isFilterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [brightnessValue, setBrightnessValue] = useState(
-    props.editedVideo ? 0 : 1,
+    props.editedVideo ? 0 : 1, //for video : -1.0 - 1.0
   );
   const [contrastValue, setContrastValue] = useState(0.5);
   const [tempValue, setTempValue] = useState(0);
@@ -56,15 +56,36 @@ const CropModal = props => {
   const [softnessValue, setSoftnessValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [videoContrast, setVideoContrast] = useState(1); // -1000.0 - 1000.0
+  const [videoSaturation, setVideoSaturation] = useState(1); //0.0 - 3.0
 
   const FilterOptions = [
     {id: 1, key: 'crop', label: 'Crop', image: images.Crop},
     {id: 2, key: 'contrast', label: 'Contrast', image: images.Contrast},
     {id: 3, key: 'brightness', label: 'Brightness', image: images.Sun},
-    {id: 4, key: 'temperature', label: 'Temp', image: images.Temp},
+    {
+      id: 4,
+      key: 'temperature',
+      label: props.editedVideo ? 'Saturation' : 'Temp',
+      image: images.Temp,
+    },
     {id: 5, key: 'sharpness', label: 'Sharpness', image: images.Sharpness}, //Saturate
     {id: 6, key: 'softness', label: 'Softness', image: images.Sharpness}, //Threshold
     {id: 7, key: 'filters', label: 'Filters', image: images.Star},
+    {id: 8, key: 'stickers', label: 'Stickers', image: images.Happy},
+    {id: 9, key: 'trim', label: 'Trim', image: images.Trim},
+    {id: 10, key: 'pip', label: 'Pip', image: images.pip},
+  ];
+  const videoFilterOptions = [
+    {id: 2, key: 'contrast', label: 'Contrast', image: images.Contrast},
+    {id: 3, key: 'brightness', label: 'Brightness', image: images.Sun},
+    {
+      id: 4,
+      key: 'temperature',
+      label: props.editedVideo ? 'Saturation' : 'Temp',
+      image: images.Temp,
+    },
+
     {id: 8, key: 'stickers', label: 'Stickers', image: images.Happy},
     {id: 9, key: 'trim', label: 'Trim', image: images.Trim},
     {id: 10, key: 'pip', label: 'Pip', image: images.pip},
@@ -108,10 +129,14 @@ const CropModal = props => {
   }, []);
 
   const openFilers = () => {
-    navigation.navigate('ImageFilter', {
-      selectedImage: props.editedImage,
-      selectedVideo: props.editedVideo,
-    });
+    {
+      props.editedVideo
+        ? Alert.alert('', 'This feature is only enable for images')
+        : navigation.navigate('ImageFilter', {
+            selectedImage: props.editedImage,
+            selectedVideo: props.editedVideo,
+          });
+    }
   };
   const renderFilterItem = ({item}) => (
     <TouchableOpacity
@@ -214,8 +239,8 @@ const CropModal = props => {
       const outputVideoPath = await adjustVideoBrightnessContrast(
         props.editedVideo,
         brightnessValue,
-        contrastValue,
-        tempValue,
+        videoContrast,
+        videoSaturation,
       );
       console.log(
         'Video Processing',
@@ -226,6 +251,9 @@ const CropModal = props => {
       props.setCropModal(false);
       console.log('Output video path:', outputVideoPath);
       props.setEditedVideo(outputVideoPath);
+      setVideoContrast(1);
+      setVideoSaturation(1);
+      setBrightnessValue(props.editedVideo ? 0 : 1);
     } catch (error) {
       setIsLoading(false);
       console.log('Video Processing Error', error);
@@ -296,7 +324,7 @@ const CropModal = props => {
         <View style={styles.listView}>
           <View style={styles.searchView}>
             <FlatList
-              data={FilterOptions}
+              data={props.editedVideo ? videoFilterOptions : FilterOptions}
               renderItem={renderFilterItem}
               keyExtractor={item => item.id}
               horizontal
@@ -317,7 +345,7 @@ const CropModal = props => {
                     alignItems: 'center',
                   }}>
                   {props.editedVideo ? (
-                    <ColorMatrix
+                    <View
                       ref={viewRef}
                       matrix={concatColorMatrices(
                         brightness(brightnessValue),
@@ -364,7 +392,7 @@ const CropModal = props => {
                           </TouchableOpacity>
                         </View>
                       )}
-                    </ColorMatrix>
+                    </View>
                   ) : (
                     <ColorMatrix
                       ref={viewRef}
@@ -456,11 +484,17 @@ const CropModal = props => {
                       <ActivityIndicator color={'#000'} size={'large'} />
                     ) : selectedItemId === 2 ? (
                       <Slider
-                        value={contrastValue}
-                        onValueChange={setContrastValue}
-                        minimumValue={0}
-                        maximumValue={2}
-                        step={0.1}
+                        value={
+                          props.editedVideo ? videoContrast : contrastValue
+                        }
+                        onValueChange={
+                          props.editedVideo
+                            ? setVideoContrast
+                            : setContrastValue
+                        }
+                        minimumValue={props.editedVideo ? 0.5 : 0}
+                        maximumValue={props.editedVideo ? 1.5 : 2}
+                        step={props.editedVideo ? 0.1 : 0.1}
                         minimumTrackTintColor="#000"
                         maximumTrackTintColor="#000"
                         style={{
@@ -471,7 +505,7 @@ const CropModal = props => {
                       <Slider
                         value={brightnessValue}
                         onValueChange={setBrightnessValue}
-                        minimumValue={0}
+                        minimumValue={props.editedVideo ? -1 : 0}
                         maximumValue={props.editedVideo ? 1 : 2}
                         step={0.1}
                         minimumTrackTintColor="#000"
@@ -482,10 +516,12 @@ const CropModal = props => {
                       />
                     ) : selectedItemId === 4 ? (
                       <Slider
-                        value={tempValue}
-                        onValueChange={setTempValue}
+                        value={props.editedVideo ? videoSaturation : tempValue}
+                        onValueChange={
+                          props.editedVideo ? setVideoSaturation : setTempValue
+                        }
                         minimumValue={0}
-                        maximumValue={2}
+                        maximumValue={props.editedVideo ? 3 : 2}
                         step={0.1}
                         minimumTrackTintColor="#000"
                         maximumTrackTintColor="#000"

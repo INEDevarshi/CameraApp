@@ -31,6 +31,7 @@ target 'cameraapp' do
   # Flags change depending on the env values.
   flags = get_default_flags()
 
+  pod 'ffmpeg-kit-react-native', :subspecs => ['full-gpl'], :podspec => '../node_modules/ffmpeg-kit-react-native/ffmpeg-kit-react-native.podspec'
   use_react_native!(
     :path => config[:reactNativePath],
     # Hermes is now enabled by default. Disable by setting this flag to false.
